@@ -28,6 +28,28 @@
   color: #61dafb;
 }
 
+.login-logo-css{
+  color: #495057;
+  font-size: 2.1rem;
+  font-weight: 300;
+  margin-bottom: 0.9rem;
+  text-align: center;
+}
+
+.errorMsg{
+  color: rgb(255, 75, 75);
+  font-size: 12px;
+}
+
+.customOverlay {
+  background: rgba(202, 210, 213, 0.7);
+}
+.customModal {
+  margin-top: 100px;
+  margin-bottom: 100px;
+  width: 80%;
+}
+
 @keyframes App-logo-spin {
   from {
     transform: rotate(0deg);

@@ -28,7 +28,7 @@ function Header(props) {
 		}
 	}
 	return (
-		<div>
+		<>
 			<nav className="main-header navbar navbar-expand navbar-dark">
 				<ul className="navbar-nav">
 					<li className="nav-item">
@@ -127,7 +127,7 @@ function Header(props) {
 					</li>
 				</ul>
 			</nav>
-		</div>
+		</>
 	)
 }
 export default Header

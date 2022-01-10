@@ -76,6 +76,7 @@ function Lockscreen() {
 			}
 			ResponToast('success', login.data.message)
 			navigate('/dashboard');
+			window.location.reload()
 		} catch (error) {
 			if(error.response){
 				const message = error.response.data.message
@@ -101,6 +102,7 @@ function Lockscreen() {
 			}
 			ResponToast('success', login.data.message)
 			navigate('/dashboard');
+			window.location.reload()
 		} catch (error) {
 			if(error.response){
 				const message = error.response.data.message
@@ -119,7 +121,7 @@ function Lockscreen() {
   };
 
 	return (
-		<div>
+		<>
 			<div className="lockscreen-wrapper">
 				<div className="lockscreen-logo">
 					<a href="../../index2.html"><b>Aplikasi</b></a>
@@ -168,14 +170,14 @@ function Lockscreen() {
 					</div>
 				} 
 				<div className="text-center">
-					<a onClick={gotoLogin}>Atau masuk dengan akun yang lain</a>
+					<a onClick={gotoLogin} className="text-black" style={{cursor: 'pointer'}}>Atau masuk dengan akun yang lain</a>
 				</div>
 				<div className="lockscreen-footer text-center">
 					Copyright © 2014-2021 <b><a href="https://adminlte.io" className="text-black">AdminLTE.io</a></b><br />
 					All rights reserved
 				</div>
 			</div>			
-		</div>
+		</>
 	)
 }
 

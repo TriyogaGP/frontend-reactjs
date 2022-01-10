@@ -5,7 +5,7 @@ import env from 'react-dotenv'
 function Menu(props) {
 	const gbr = props.dataUser.codeLog === 1 ? props.dataUser.gambar != null ? `${env.SITE_URL}images/${props.dataUser.gambar}` : 'dist/img/user.png' : props.dataUser.codeLog === 2 ? props.dataUser.gambarGmail : 'dist/img/user.png';
 	return (
-		<div>
+		<>
 			<aside className="main-sidebar sidebar-dark-primary elevation-4">
 				<Link to='/dashboard' className="brand-link">
 					<img src="dist/img/AdminLTELogo.png" alt="AdminLTE Logo" className="brand-image img-circle elevation-3" style={{opacity: '.8'}} />
@@ -754,7 +754,7 @@ function Menu(props) {
 					</nav>
 				</div>
 			</aside>
-		</div>
+		</>
 	)
 }
 

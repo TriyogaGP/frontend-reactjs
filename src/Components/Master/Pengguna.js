@@ -20,7 +20,6 @@ function Pengguna() {
 	const [passwordShown, setPasswordShown] = useState(false);
 	const [loading, setLoading] = useState(true);
 	const [open, setOpen] = useState(false);
-	const onCloseModal = () => setOpen(false);
 	const navigate = useNavigate();
 	const { search } = useLocation();
   const match = search.match(/page=(.*)/);
@@ -49,18 +48,24 @@ function Pengguna() {
 
 	const openDialog = (kondisi = null) => {
 		if(kondisi === 'tambah'){
+			const randomPass = makeRandom(8)
 			setEditValues({
 				id: null,
 				name: '',
 				email: '',
-				address: '',
-				description: '',
-				phone: '',
-				website: '',
+				password: randomPass,
+				alamat: '',
+				telp: '',
 			})
 		}
 		setOpen(true)
 	}
+
+	const onCloseModal = () => {
+		setOpen(false)
+		setErrors({})
+		setEditValues({})
+	};
 
 	const getData = async(role) => {
 		setLoading(true)
@@ -70,7 +75,7 @@ function Pengguna() {
 					Authorization: `Bearer ${accessToken}`
 				}
 			});
-			// console.log(response.data.data)
+			console.log(response.data.data)
 			setLoading(false)
 			setValues(response.data.data);
 		} catch (error) {
@@ -81,29 +86,33 @@ function Pengguna() {
 
 	const prosesSimpan = async(e) => {
 		e.preventDefault();
+		setErrors(validateInput(Editvalues))
 		setLoading(true) 
+		Loading('Sedang melakukan proses konfirmasi pendaftaran akun ke alamat email anda')
 		try {
-			const dataUsers = await axios.post(`${env.SITE_URL}restApi/moduleUser/updateusers`, {
+			const dataUsers = await axios.post(`${env.SITE_URL}restApi/moduleUser/createupdateusers`, {
 				id: Editvalues.id === null ? null : Editvalues.id,
 				name: Editvalues.name,
 				email: Editvalues.email,
+				password: Editvalues.password,
 				alamat: Editvalues.alamat,
 				telp: Editvalues.telp,
 				roleID: roleID,
 				jenis: Editvalues.id === null ? 'ADD' : 'EDIT',
 			});
+			getData(roleID)
 			setOpen(false)
 			setLoading(false) 
-			getData(roleID)
 			ResponToast('success', dataUsers.data.message)
+			navigate(`/pengguna?page=${match?.[1]}`);
 		} catch (error) {
 			if(error.response){
 				const message = error.response.data.message
-				setOpen(false)
-				setLoading(false) 
 				getData(roleID)
+				setLoading(false) 
 				ResponToast('error', message)
-			}
+				navigate(`/pengguna?page=${match?.[1]}`);
+		}
 		}
 	}
 
@@ -115,6 +124,24 @@ function Pengguna() {
     }
 	}
 
+	const selectActiveAkun = async(e) => {
+		let activeAkun = e.target.checked === true ? '1' : '0'
+		try {
+			const aktifAkun = await axios.post(`${env.SITE_URL}restApi/moduleUser/updateuserby`, {
+				id: e.target.value,
+				jenis: 'activeAkun',
+				activeAkun: activeAkun
+			});
+			ResponToast('success', aktifAkun.data.message)
+			navigate(`/pengguna?page=${match?.[1]}`);
+		} catch (error) {
+			if(error.response){
+				const message = error.response.data.message
+				ResponToast('error', message)
+			}
+		}
+	}
+	
 	const editRecord = (record) => {
 		// console.log("Edit Record", record);
 		setEditValues(record)
@@ -125,15 +152,13 @@ function Pengguna() {
 		// console.log("Delete Record", record);
 		setLoading(true) 
 		try {
-			const dataUsers = await axios.delete(`${env.SITE_URL}restApi/moduleApi/bootcamp/${record.id}`);
-			setOpen(false)
-			setLoading(false) 
+			const dataUsers = await axios.delete(`${env.SITE_URL}restApi/moduleUser/getusers/${record.id}`);
 			getData(roleID)
+			setLoading(false) 
 			ResponToast('success', dataUsers.data.message)
 		} catch (error) {
 			if(error.response){
 				const message = error.response.data.message
-				setOpen(false)
 				ResponToast('error', message)
 			}
 		}
@@ -166,6 +191,45 @@ function Pengguna() {
 			allowOutsideClick: false
     });
 	}
+
+	const Loading = (msg) => {
+    Swal.fire({
+			title: 'Harap Menunggu',
+			html: msg,
+			allowOutsideClick: false,
+			showConfirmButton: false,
+		});
+		Swal.showLoading()
+	}
+
+	const makeRandom = (n) => {
+		let result = '';
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const charactersLength = characters.length;
+    for ( let i = 0; i < n; i++ ) {
+      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+   	}
+   	return result;
+	}
+
+	const validateInput = (Editvalues) => {
+		// console.log(Editvalues)
+		let error = {}
+		let regEmail = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+
+		if(!Editvalues.name.trim()){
+			error.name = 'Nama Lengkap tidak boleh kosong'
+		}
+		
+		if(!Editvalues.email.trim()){
+			error.email = 'Email tidak boleh kosong'
+		}else if(!regEmail.test(Editvalues.email)){
+			error.email = 'Email tidak sesuai'
+		}
+
+		// console.log(error)
+		return error
+	} 
 
 	const columns = [
 		{
@@ -228,6 +292,27 @@ function Pengguna() {
 			className: "alamat",
 			width: '30%',
 			align: "center",
+		},
+		{
+			key: "activeAkun",
+			text: "Aktif Akun",
+			className: "activeAkun",
+			width: '10%',
+			align: "center",
+			cell: record => { 
+				return (
+					<Fragment>
+						<div style={{textAlign: 'center'}}>
+							<div className="form-group">
+								<div className="custom-control custom-switch custom-switch-off-default custom-switch-on-success">
+									<input type="checkbox" className="custom-control-input" id={"aktivAkun"+record.id} value={record.id} onChange={(e) => selectActiveAkun(e)} defaultChecked={record.activeAkun === 0 ? '' : 'checked' } />
+									<label className="custom-control-label" htmlFor={"aktivAkun"+record.id}></label>
+								</div>
+							</div>
+						</div>
+					</Fragment>
+				);
+			}
 		},
 		{
 			key: "action",
@@ -373,14 +458,16 @@ function Pengguna() {
 								<label htmlFor="name">Nama Lengkap</label>
 								<input type="text" className="form-control" name='name' placeholder="Nama Lengkap" autoComplete="off" value={Editvalues.name} onChange={handleChange} />
 							</div>
+							<p className='errorMsg'>{errors.name}</p>
 							<div className="form-group">
 								<label htmlFor="email">Email</label>
 								<input type="email" className="form-control" name='email' placeholder="Email" autoComplete="off" value={Editvalues.email} onChange={handleChange} />
 							</div>
+							<p className='errorMsg'>{errors.email}</p>
 							<div className="form-group">
 								<label htmlFor="password">Kata Sandi</label>
 								<div className="input-group mb-3">
-									<input type={passwordShown ? "text" : "password"} className="form-control" name="password" placeholder="Kata Sandi" autoComplete="off" value={Editvalues.passassword} onChange={handleChange} disabled={Editvalues.id !== null ? !flag.flagPassEdit : false} />
+									<input type={passwordShown ? "text" : "password"} className="form-control" name="password" placeholder="Kata Sandi" autoComplete="off" value={Editvalues.password} onChange={handleChange} disabled={Editvalues.id !== null ? !flag.flagPassEdit : true} />
 									<div className="input-group-append">
 										<div className="input-group-text">
 											<span onClick={(aksi) => {togglePassword(!passwordShown)}} className={!passwordShown ? "fas fa-eye" : "fas fa-eye-slash"} />
@@ -394,7 +481,11 @@ function Pengguna() {
 										</div>
 									}
 								</div>
-							<p><b>NB: Jika ingin mengubah password aktifkan input password terlebih dahulu</b></p>
+								{Editvalues.id !== null ? 
+									<p><b>NB: Jika ingin mengubah password aktifkan input password terlebih dahulu</b></p>
+								:
+									<p><b>NB: Password sudah di generate acak</b></p>
+								}
 							</div>
 							<div className="form-group">
 								<label htmlFor="alamat">Alamat</label>

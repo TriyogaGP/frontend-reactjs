@@ -86,11 +86,11 @@ function Layout() {
 	}
 
 	return (
-		<div>
+		<>
 			<Header namaLengkap={namaLengkap} dataUser={values} />
 			<Menu roleID={roleID} namaLengkap={namaLengkap} dataUser={values} />
 			<Footer />			
-		</div>
+		</>
 	)
 }
 

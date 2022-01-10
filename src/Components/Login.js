@@ -52,12 +52,22 @@ function Login() {
 		return error
 	}
 
-	const ResponToast = (icon, msg) => {
+	const ResponToastError = (icon, msg) => {
     Swal.fire({  
       title: 'Pemberitahuan',  
       text: msg,  
       icon: icon,    
 			confirmButtonText: 'Tutup',
+			allowOutsideClick: false
+    });
+	}
+
+	const ResponToast = (icon, msg) => {
+    Swal.fire({  
+      title: 'Pemberitahuan',  
+      text: msg,  
+      icon: icon,    
+			showConfirmButton: false,
 			allowOutsideClick: false
     });
 	}
@@ -68,7 +78,7 @@ function Login() {
 	}
 
 	const onFailure = (res) => {
-		ResponToast('error', 'Gagal masuk panel')
+		ResponToastError('error', 'Gagal masuk panel')
 	}
 
 	const masukGmail = async(data) => {
@@ -81,17 +91,18 @@ function Login() {
 				localStorage.setItem('namaLengkap', login.data.data[0].name)
 				localStorage.setItem('roleID', login.data.data[0].roleID)
 				localStorage.setItem('access_token', login.data.data.access_token)
-				await axios.post(`${env.SITE_URL}restApi/moduleLogin/postImage`, {
+				const masukLog = await axios.post(`${env.SITE_URL}restApi/moduleLogin/postImage`, {
 					email: data.email,
 					gambar: data.imageUrl,
 				});
+				ResponToast('success', masukLog.data.message)
 			}
-			ResponToast('success', login.data.message)
 			navigate('/dashboard');
+			window.location.reload()
 		} catch (error) {
 			if(error.response){
 				const message = error.response.data.message
-				ResponToast('error', message)
+				ResponToastError('error', message)
 			}
 		}
 	}
@@ -112,10 +123,11 @@ function Login() {
 			}
 			ResponToast('success', login.data.message)
 			navigate('/dashboard');
+			window.location.reload()
 		} catch (error) {
 			if(error.response){
 				const message = error.response.data.message
-				ResponToast('error', message)
+				ResponToastError('error', message)
 			}
 		}
 	}

@@ -19,7 +19,7 @@ function Lockscreen() {
 		if(localStorage.getItem('access_token') != null){
 			getData()
 		}else{
-			ResponToast('error', 'Tidak bisa mengakses halaman ini !')
+			ResponToastError('error', 'Tidak bisa mengakses halaman ini !')
 			navigate('/')
 		}
 	},[])
@@ -50,12 +50,22 @@ function Lockscreen() {
 		return error
 	}
 
-	const ResponToast = (icon, msg) => {
+	const ResponToastError = (icon, msg) => {
     Swal.fire({  
       title: 'Pemberitahuan',  
       text: msg,  
       icon: icon,    
 			confirmButtonText: 'Tutup',
+			allowOutsideClick: false
+    });
+	}
+
+	const ResponToast = (icon, msg) => {
+    Swal.fire({  
+      title: 'Pemberitahuan',  
+      text: msg,  
+      icon: icon,    
+			showConfirmButton: false,
 			allowOutsideClick: false
     });
 	}
@@ -80,7 +90,7 @@ function Lockscreen() {
 		} catch (error) {
 			if(error.response){
 				const message = error.response.data.message
-				ResponToast('error', message)
+				ResponToastError('error', message)
 			}
 		}
 	}
@@ -106,7 +116,7 @@ function Lockscreen() {
 		} catch (error) {
 			if(error.response){
 				const message = error.response.data.message
-				ResponToast('error', message)
+				ResponToastError('error', message)
 			}
 		}
 	}

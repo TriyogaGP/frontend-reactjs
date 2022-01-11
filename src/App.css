@@ -50,6 +50,14 @@
   width: 80%;
 }
 
+.input-group-date {
+  position: relative;
+  display: flex;
+  -ms-flex-align: stretch;
+  align-items: stretch;
+  width: 100%;
+}
+
 @keyframes App-logo-spin {
   from {
     transform: rotate(0deg);

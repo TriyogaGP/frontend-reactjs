@@ -2,6 +2,9 @@ import React, { useState, useEffect, Fragment  } from 'react'
 import { Link } from 'react-router-dom'
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
+import Select from 'react-select';
+import DatePicker from 'react-datepicker'
+import "react-datepicker/dist/react-datepicker.css";
 import ReactDatatable from '@ashvin27/react-datatable';
 import 'react-responsive-modal/styles.css';
 import { Modal } from 'react-responsive-modal';
@@ -13,8 +16,13 @@ function Pengguna() {
 	const [values, setValues] = useState([])
 	const [selectedRows, setSelectedRows] = useState([]);
 	const [Editvalues, setEditValues] = useState({})
+	const [startDate, setStartDate] = useState(null);
+	const [TanggalLahir, setTanggalLahir] = useState(null);
+	const [Agama, setAgama] = useState(null);
+	const [PassBay, setPassBay] = useState(null);
 	const [flag, setFlag] = useState({
-		flagPassEdit: false
+		flagPassEdit: false,
+		flagTanggalEdit: false
 	})
 	const [errors, setErrors] = useState({});
 	const [passwordShown, setPasswordShown] = useState(false);
@@ -54,6 +62,13 @@ function Pengguna() {
 				name: '',
 				email: '',
 				password: randomPass,
+				nomor_induk: '',
+				tgl_lahir: '',
+				tempat: '',
+				jeniskelamin: '',
+				agama: '',
+				nama_ayah: '',
+				nama_ibu: '',
 				alamat: '',
 				telp: '',
 			})
@@ -65,6 +80,8 @@ function Pengguna() {
 		setOpen(false)
 		setErrors({})
 		setEditValues({})
+		setStartDate(null)
+		setTanggalLahir(null)
 	};
 
 	const getData = async(role) => {
@@ -75,7 +92,7 @@ function Pengguna() {
 					Authorization: `Bearer ${accessToken}`
 				}
 			});
-			console.log(response.data.data)
+			// console.log(response.data.data)
 			setLoading(false)
 			setValues(response.data.data);
 		} catch (error) {
@@ -86,34 +103,44 @@ function Pengguna() {
 
 	const prosesSimpan = async(e) => {
 		e.preventDefault();
+		const payload = {
+			id: Editvalues.id === null ? null : Editvalues.id,
+			name: Editvalues.name ? Editvalues.name : null,
+			email: Editvalues.email ? Editvalues.email : null,
+			password: Editvalues.id !== null ? !flag.flagPassEdit ? Editvalues.password : PassBay : Editvalues.password ? Editvalues.password : null,
+			nomor_induk: roleID !== '1' ? Editvalues.nomor_induk : null,
+			tgl_lahir: Editvalues.id === null ? TanggalLahir : !flag.flagTanggalEdit ? Editvalues.tgl_lahir : TanggalLahir,
+			tempat: Editvalues.tempat ? Editvalues.tempat : null,
+			agama: Agama ? Agama.value : null,
+			jeniskelamin: Editvalues.jeniskelamin ? Editvalues.jeniskelamin : null,
+			nama_ayah: roleID === '5' || roleID === '6' ? Editvalues.nama_ayah : null,
+			nama_ibu: roleID === '5' || roleID === '6' ? Editvalues.nama_ibu : null,
+			alamat: Editvalues.alamat ? Editvalues.alamat : null,
+			telp: Editvalues.telp ? Editvalues.telp : null,
+			roleID: roleID,
+			jenis: Editvalues.id === null ? 'ADD' : 'EDIT',
+			kodeOTP: Editvalues.id !== null ? PassBay : null,
+		}
+		// console.log(payload)
 		setErrors(validateInput(Editvalues))
-		setLoading(true) 
-		Loading('Sedang melakukan proses konfirmasi pendaftaran akun ke alamat email anda')
-		try {
-			const dataUsers = await axios.post(`${env.SITE_URL}restApi/moduleUser/createupdateusers`, {
-				id: Editvalues.id === null ? null : Editvalues.id,
-				name: Editvalues.name,
-				email: Editvalues.email,
-				password: Editvalues.password,
-				alamat: Editvalues.alamat,
-				telp: Editvalues.telp,
-				roleID: roleID,
-				jenis: Editvalues.id === null ? 'ADD' : 'EDIT',
-			});
-			getData(roleID)
-			setOpen(false)
-			setLoading(false) 
-			ResponToast('success', dataUsers.data.message)
-			navigate(`/pengguna?page=${match?.[1]}`);
-		} catch (error) {
-			if(error.response){
-				const message = error.response.data.message
-				getData(roleID)
-				setLoading(false) 
-				ResponToast('error', message)
-				navigate(`/pengguna?page=${match?.[1]}`);
-		}
-		}
+		// setLoading(true) 
+		// Loading('Sedang melakukan proses konfirmasi pendaftaran akun ke alamat email anda')
+		// try {
+		// 	const dataUsers = await axios.post(`${env.SITE_URL}restApi/moduleUser/createupdateusers`, payload);
+		// 	getData(roleID)
+		// 	setOpen(false)
+		// 	setLoading(false) 
+		// 	ResponToast('success', dataUsers.data.message)
+		// 	navigate(`/pengguna?page=${match?.[1]}`);
+		// } catch (error) {
+		// 	if(error.response){
+		// 		const message = error.response.data.message
+		// 		getData(roleID)
+		// 		setLoading(false) 
+		// 		ResponToast('error', message)
+		// 		navigate(`/pengguna?page=${match?.[1]}`);
+		// 	}
+		// }
 	}
 
 	const selectRecord = (e) => {
@@ -145,6 +172,16 @@ function Pengguna() {
 	const editRecord = (record) => {
 		// console.log("Edit Record", record);
 		setEditValues(record)
+		setPassBay(makeRandom(8))
+		setAgama({
+			value: record.agama,
+			label: record.agama,
+		})
+		setFlag({
+			flagPassEdit: false,
+			flagTanggalEdit: false
+		})
+		setPasswordShown(false)
 		openDialog()
 	}
 
@@ -168,9 +205,17 @@ function Pengguna() {
     setPasswordShown(aksi);
   }
 
-	const toggleFlag = (aksi) => {
+	const toggleFlagPass = (aksi) => {
     setFlag({
-			flagPassEdit: aksi
+			flagPassEdit: aksi,
+			flagTanggalEdit: flag.flagTanggalEdit
+		});
+  }
+
+	const toggleFlagTanggal = (aksi) => {
+    setFlag({
+			flagPassEdit: flag.flagPassEdit,
+			flagTanggalEdit: aksi
 		});
   }
 
@@ -227,9 +272,38 @@ function Pengguna() {
 			error.email = 'Email tidak sesuai'
 		}
 
+		if (Editvalues.nomor_induk.length > 18 && roleID === '2') { error.nomor_induk = "Maksimal 18 angka" }
+		else if (Editvalues.nomor_induk.length > 9 && (roleID === '3' || roleID === '5')) { error.nomor_induk = "Maksimal 9 angka" }
+		else if (Editvalues.nomor_induk.length > 15 && roleID === '4') { error.nomor_induk = "Maksimal 15 angka" }
+		else if (Editvalues.nomor_induk.length > 10 && roleID === '6') { error.nomor_induk = "Maksimal 10 angka" }
+		else if (!Editvalues.nomor_induk) { error.nomor_induk = "Nomor Induk tidak boleh kosong" }
+
 		// console.log(error)
 		return error
 	} 
+
+	const handlertanggalLahir = (str) => {
+		let date = new Date(str),
+    mnth = ("0" + (date.getMonth() + 1)).slice(-2),
+    day = ("0" + date.getDate()).slice(-2);
+  	const tanggal = [date.getFullYear(), mnth, day].join("-");
+		setStartDate(str)
+		setTanggalLahir(tanggal)
+	}
+
+	const handlerAgama = (select) => {
+		setAgama(select)
+		// console.log(select)
+	}
+
+	const handlerTelepon = (e) => {
+		if (!/[0-9]/.test(e.key)) { e.preventDefault(); setErrors({telepon: "Hanya boleh angka"}) }
+		else if (e.target.value.length >= 15) { e.preventDefault(); setErrors({telepon: "Maksimal 15 angka"}) }
+	}
+
+	const handlerNomorInduk = (e) => {
+		if (!/[0-9]/.test(e.key)) { e.preventDefault(); setErrors({nomor_induk: "Hanya boleh angka"}) }
+	}
 
 	const columns = [
 		{
@@ -394,6 +468,14 @@ function Pengguna() {
 		},
 	]
 
+	const optionsAgama = [
+		{ value: 'Islam', label: 'Islam' },
+		{ value: 'Katolik', label: 'Katolik' },
+		{ value: 'Protestan', label: 'Protestan' },
+		{ value: 'Hindu', label: 'Hindu' },
+		{ value: 'Budha', label: 'Budha' },
+	]
+
 	return (
 		<div>
 			<div className="content-wrapper">
@@ -454,6 +536,16 @@ function Pengguna() {
 									<span aria-hidden="true">×</span>
 								</button>
 							</div>
+							{roleID !== '1' &&
+								<>
+									<div className="form-group">
+										<label htmlFor="name">Nomor Induk</label>
+										<input type="text" className="form-control" name='nomor_induk' placeholder="Nomor Induk" autoComplete="off" value={Editvalues.nomor_induk} onChange={handleChange} onKeyPress={(e) => {handlerNomorInduk(e)}} />
+									</div>
+									<p className='errorMsg'>{errors.nomor_induk}</p>
+									<p><b>NB: Diinput tanpa menggunakan spasi</b></p>
+								</>
+							}
 							<div className="form-group">
 								<label htmlFor="name">Nama Lengkap</label>
 								<input type="text" className="form-control" name='name' placeholder="Nama Lengkap" autoComplete="off" value={Editvalues.name} onChange={handleChange} />
@@ -467,33 +559,113 @@ function Pengguna() {
 							<div className="form-group">
 								<label htmlFor="password">Kata Sandi</label>
 								<div className="input-group mb-3">
-									<input type={passwordShown ? "text" : "password"} className="form-control" name="password" placeholder="Kata Sandi" autoComplete="off" value={Editvalues.password} onChange={handleChange} disabled={Editvalues.id !== null ? !flag.flagPassEdit : true} />
+									<input type={passwordShown ? "text" : "password"} className="form-control" name="password" placeholder="Kata Sandi" autoComplete="off" value={Editvalues.id !== null ? !flag.flagPassEdit ? '********' : PassBay : Editvalues.password} onChange={handleChange} disabled={Editvalues.id !== null ? !flag.flagPassEdit : true} />
 									<div className="input-group-append">
 										<div className="input-group-text">
-											<span onClick={(aksi) => {togglePassword(!passwordShown)}} className={!passwordShown ? "fas fa-eye" : "fas fa-eye-slash"} />
+											<span onClick={(aksi) => {!flag.flagPassEdit ? togglePassword(false) : togglePassword(!passwordShown)}} className={!passwordShown ? "fas fa-eye" : "fas fa-eye-slash"} />
 										</div>
 									</div>
 									{Editvalues.id !== null &&
 										<div className="input-group-append">
 											<div className="input-group-text">
-												<span onClick={(aksi) => {toggleFlag(!flag.flagPassEdit)}} className={!flag.flagPassEdit ? "fas fa-unlock" : "fas fa-lock"} />
+												<span onClick={(aksi) => {toggleFlagPass(!flag.flagPassEdit)}} className={!flag.flagPassEdit ? "fas fa-unlock" : "fas fa-lock"} />
 											</div>
 										</div>
 									}
 								</div>
 								{Editvalues.id !== null ? 
 									<p><b>NB: Jika ingin mengubah password aktifkan input password terlebih dahulu</b></p>
-								:
+									:
 									<p><b>NB: Password sudah di generate acak</b></p>
 								}
 							</div>
 							<div className="form-group">
-								<label htmlFor="alamat">Alamat</label>
-								<textarea className="form-control" rows="3" name='alamat' placeholder="Alamat" autoComplete="off" value={Editvalues.alamat} onChange={handleChange} ></textarea>
+								<label htmlFor="tempat">Tempat Lahir</label>
+								<input type="text" className="form-control" name='tempat' placeholder="Tempat Lahir" autoComplete="off" value={Editvalues.tempat} onChange={handleChange} />
 							</div>
 							<div className="form-group">
+								<label>Tanggal Lahir</label>
+								<div className="input-group-date mb-3">
+									{Editvalues.id !== null ?
+										!flag.flagTanggalEdit ? 
+											<input type="text" className="form-control" name='tgl_lahir' placeholder="Tanggal Lahir" autoComplete="off" disabled value={Editvalues.tgl_lahir} onChange={handleChange} />
+										:
+											<DatePicker
+												className="form-control"
+												dateFormat="yyyy-MM-dd"
+												placeholderText="Tanggal Lahir"
+												selected={startDate}
+												onChange={(date) => handlertanggalLahir(date)}
+												peekNextMonth
+												showMonthDropdown
+												showYearDropdown
+												dropdownMode="select"
+											/>
+									:
+										<DatePicker
+											className="form-control"
+											dateFormat="yyyy-MM-dd"
+											placeholderText="Tanggal Lahir"
+											selected={startDate}
+											onChange={(date) => handlertanggalLahir(date)}
+											peekNextMonth
+											showMonthDropdown
+											showYearDropdown
+											dropdownMode="select"
+										/>
+									}
+									{Editvalues.id !== null &&
+										<div className="input-group-append">
+											<div className="input-group-text">
+												<span onClick={(aksi) => {toggleFlagTanggal(!flag.flagTanggalEdit)}} className={!flag.flagTanggalEdit ? "fas fa-unlock" : "fas fa-lock"} />
+											</div>
+										</div>
+									}
+								</div>
+								{Editvalues.id !== null &&
+									<p><b>NB: Jika ingin mengubah tanggal lahir aktifkan input tanggal lahir terlebih dahulu</b></p>
+								}
+							</div>
+							<div className="form-group">
+								<label>Agama</label>
+								<Select
+									placeholder='Pilih Agama'
+									value={Agama}
+									onChange={(x) => {handlerAgama(x)}}
+									options={optionsAgama}
+								/>
+							</div>
+							<div className="form-group">
+								<label>Jenis Kelamin</label>
+								<div className="form-check">
+									<input className="form-check-input" type="radio" name="jeniskelamin" value="Laki - Laki" onChange={handleChange} checked={Editvalues.jeniskelamin === 'Laki - Laki' ? 'checked' : '' } />
+									<label className="form-check-label">Laki - Laki</label>
+								</div>
+								<div className="form-check">
+									<input className="form-check-input" type="radio" name="jeniskelamin" value="Perempuan" onChange={handleChange} checked={Editvalues.jeniskelamin === 'Perempuan' ? 'checked' : '' } />
+									<label className="form-check-label">Perempuan</label>
+								</div>
+							</div>
+							{roleID === '5' || roleID === '6' &&
+								<>
+									<div className="form-group">
+										<label htmlFor="name">Nama Ayah</label>
+										<input type="text" className="form-control" name='nama_ayah' placeholder="Nama Ayah" autoComplete="off" value={Editvalues.nama_ayah} onChange={handleChange} />
+									</div>
+									<div className="form-group">
+										<label htmlFor="name">Nama Ibub</label>
+										<input type="text" className="form-control" name='nama_ibu' placeholder="Nama Ibu" autoComplete="off" value={Editvalues.nama_ibu} onChange={handleChange} />
+									</div>
+								</>
+							}
+							<div className="form-group">
 								<label htmlFor="telp">Telepon</label>
-								<input type="text" className="form-control" name='telp' placeholder="Telepon" autoComplete="off" value={Editvalues.telp} onChange={handleChange} />
+								<input type="text" className="form-control" name='telp' placeholder="Telepon" autoComplete="off" value={Editvalues.telp} onChange={handleChange} onKeyPress={(e) => {handlerTelepon(e)}} />
+							</div>
+							<p className='errorMsg'>{errors.telepon}</p>
+							<div className="form-group">
+								<label htmlFor="alamat">Alamat</label>
+								<textarea className="form-control" rows="3" name='alamat' placeholder="Alamat" autoComplete="off" value={Editvalues.alamat} onChange={handleChange} ></textarea>
 							</div>
 							<div className="modal-footer right-content-between">
 								<button onClick={onCloseModal} className="btn btn-primary btn-sm align-right">Batal</button>

@@ -76,8 +76,9 @@ function Layout() {
 	}
 	
 	const cekData = () => {
-		if(accessToken == null){
+		if(accessToken == null || values.activeAkun === 0){
 			ResponToast('error', 'Anda tidak boleh masuk panel ini, Login terlebih dahulu .. Terima Kasih !')
+			localStorage.clear()
 			navigate('/');
 		}else{
 			// refreshToken()

@@ -162,10 +162,13 @@ function Profile(props) {
 			passwordbaru: '',
 			confpasswordbaru: ''
 		})
+		setErrors({})
 	}
 	const ubahProfile = async(ubahJenis) => {
 		// e.preventDefault();
-		setErrors(validateInput(ubahData))
+		if(ubahJenis === 'katasandi'){
+			setErrors(validateInput(ubahData))
+		}
 		const kirimData = {
 			id: localStorage.getItem('idProfile'),
 			ubah: ubahJenis,
@@ -184,7 +187,7 @@ function Profile(props) {
 			clearForm()
 			getData()
 			ResponToast('success', profile_ubah.data.message)
-			navigate('/profile');
+			navigate('/profile#aktivity');
 		} catch (error) {
 			if(error.response){
 				const message = error.response.data.message
